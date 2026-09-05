@@ -24,10 +24,20 @@ class _FakeSession:
     def post(self, url: str, json: dict[str, Any], timeout: int) -> _FakeResponse:
         self.calls.append((url, json))
         if url.endswith("/graphql"):
-            mutation = "resolveReviewThread" if "unresolve" not in json["query"] else "unresolveReviewThread"
+            mutation = (
+                "resolveReviewThread"
+                if "unresolve" not in json["query"]
+                else "unresolveReviewThread"
+            )
             resolved = mutation == "resolveReviewThread"
             return _FakeResponse(
-                {"data": {mutation: {"thread": {"id": json["variables"]["threadId"], "isResolved": resolved}}}}
+                {
+                    "data": {
+                        mutation: {
+                            "thread": {"id": json["variables"]["threadId"], "isResolved": resolved}
+                        }
+                    }
+                }
             )
         return _FakeResponse({"id": 999, "body": json["body"]})
 

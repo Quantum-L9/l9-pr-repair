@@ -6,7 +6,9 @@ from pr_repair.types import Finding, PRRef, ReviewDisposition, Severity, SourceN
 
 
 def _event(tool: str | None) -> NormalizedPREvent:
-    return NormalizedPREvent("pull_request_review", "submitted", "review_completed", "owner/repo", 7, "sha", {}, tool)
+    return NormalizedPREvent(
+        "pull_request_review", "submitted", "review_completed", "owner/repo", 7, "sha", {}, tool
+    )
 
 
 def test_registry_routes_copilot_and_rejects_unknown() -> None:
@@ -19,18 +21,33 @@ def test_registry_routes_copilot_and_rejects_unknown() -> None:
 
 def _pr() -> PRRef:
     return PRRef(
-        repo_owner="owner", repo_name="repo", pr_number=7, title="t",
-        head_branch="fix", base_branch="main", head_sha="sha",
-        is_draft=False, author="dev", labels=[],
+        repo_owner="owner",
+        repo_name="repo",
+        pr_number=7,
+        title="t",
+        head_branch="fix",
+        base_branch="main",
+        head_sha="sha",
+        is_draft=False,
+        author="dev",
+        labels=[],
     )
 
 
 def _finding() -> Finding:
     return Finding(
-        finding_id="copilot-1", pr_number=7, source_name=SourceName.agent_review,
-        source_priority=110, severity=Severity.medium, category="review_comment",
-        message="m", tool="copilot", thread_id="PRRT_1", comment_id=5001,
-        review_disposition=ReviewDisposition.manual_review, fingerprint="fp",
+        finding_id="copilot-1",
+        pr_number=7,
+        source_name=SourceName.agent_review,
+        source_priority=110,
+        severity=Severity.medium,
+        category="review_comment",
+        message="m",
+        tool="copilot",
+        thread_id="PRRT_1",
+        comment_id=5001,
+        review_disposition=ReviewDisposition.manual_review,
+        fingerprint="fp",
     )
 
 

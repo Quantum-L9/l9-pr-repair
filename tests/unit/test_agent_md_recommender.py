@@ -18,4 +18,7 @@ def test_build_agent_md_recommendations_is_review_only() -> None:
 
     assert payload["target_document"] == "AGENT.md"
     assert payload["write_policy"] == "review_only_no_direct_mutation"
-    assert "Require make agent-check parity before approval." in payload["sections"]["stronger_preflight_rules"]
+    assert (
+        "Require make agent-check parity before approval."
+        in payload["sections"]["stronger_preflight_rules"]
+    )

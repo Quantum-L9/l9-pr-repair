@@ -4,7 +4,9 @@ from pr_repair.types import PRRef
 
 
 class FakeGitHubConnector:
-    def list_open_prs(self, repo_owner: str, repo_name: str, include_drafts: bool = False) -> list[PRRef]:
+    def list_open_prs(
+        self, repo_owner: str, repo_name: str, include_drafts: bool = False
+    ) -> list[PRRef]:
         assert repo_owner == "owner"
         assert repo_name == "repo"
         assert include_drafts is False

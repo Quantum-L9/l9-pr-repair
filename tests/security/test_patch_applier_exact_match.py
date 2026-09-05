@@ -237,4 +237,3 @@ def test_replace_range_with_null_expected_block_fails_closed(tmp_path: Path) -> 
         )
 
     assert path.read_text(encoding="utf-8") == "keep1\nkeep2\n"
-

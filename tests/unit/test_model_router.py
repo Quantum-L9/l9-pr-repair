@@ -11,8 +11,14 @@ from pr_repair.types import Finding, Severity, SourceName
 
 def _finding(severity: Severity = Severity.medium) -> Finding:
     return Finding(
-        finding_id="f", pr_number=1, source_name=SourceName.agent_review, source_priority=110,
-        severity=severity, category="review_comment", message="m", fingerprint="fp",
+        finding_id="f",
+        pr_number=1,
+        source_name=SourceName.agent_review,
+        source_priority=110,
+        severity=severity,
+        category="review_comment",
+        message="m",
+        fingerprint="fp",
     )
 
 
@@ -48,7 +54,9 @@ def test_repeated_failures_escalate_tier() -> None:
 def test_effort_only_for_reasoning_tiers() -> None:
     assert resolve_llm_config("low").effort is None  # haiku
     assert resolve_llm_config("high").effort == "medium"  # opus, no prior failures
-    assert resolve_llm_config("high", None, FindingSignals(prior_failed_attempts=1)).effort == "high"
+    assert (
+        resolve_llm_config("high", None, FindingSignals(prior_failed_attempts=1)).effort == "high"
+    )
 
 
 def test_invalid_matrix_tier_falls_back_to_complexity() -> None:
