@@ -1,5 +1,5 @@
 {
-  "_source": "Real SonarCloud output captured from Quantum-L9/PR_Repair PR #15 (get_comments). EVIDENCE that on this repo SonarCloud publishes on the ISSUE-COMMENT channel (a Quality-Gate summary), NOT as inline review threads: get_review_comments for PR #15 returned zero threads. The summary carries no per-issue path/line/rule, so it is not per-finding actionable. The SonarAdapter reads review threads (get_review_threads), so it correctly yields no findings here. Sonar actuation requires SonarCloud PR inline decoration (per-issue review comments); until a repo confirms that shape, sonarcloud stays disabled.",
+  "_source": "Real SonarCloud output captured from Quantum-L9/l9-pr-repair PR #15 (get_comments). EVIDENCE that on this repo SonarCloud publishes on the ISSUE-COMMENT channel (a Quality-Gate summary), NOT as inline review threads: get_review_comments for PR #15 returned zero threads. The summary carries no per-issue path/line/rule, so it is not per-finding actionable. The SonarAdapter reads review threads (get_review_threads), so it correctly yields no findings here. Sonar actuation requires SonarCloud PR inline decoration (per-issue review comments); until a repo confirms that shape, sonarcloud stays disabled.",
   "channel": "issue_comment",
   "author_login": "sonarqubecloud[bot]",
   "has_path_or_line": false,
@@ -7,6 +7,6 @@
     "id": 4857872115,
     "user": { "login": "sonarqubecloud[bot]" },
     "body_excerpt": "Quality Gate failed — Failed conditions: C Security Rating on New Code (required >= A)",
-    "html_url": "https://github.com/Quantum-L9/PR_Repair/pull/15#issuecomment-4857872115"
+    "html_url": "https://github.com/Quantum-L9/l9-pr-repair/pull/15#issuecomment-4857872115"
   }
 }

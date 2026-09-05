@@ -107,7 +107,7 @@ CI workflows that trigger cross-repo dispatches on push events.
 
 | Repo | PR | Status |
 |------|-----|--------|
-| PR_Repair | [#20](https://github.com/Quantum-L9/PR_Repair/pull/20) | Open |
+| l9-pr-repair | [#20](https://github.com/Quantum-L9/l9-pr-repair/pull/20) | Open |
 | l9-ci-debt-lsp | [#2](https://github.com/Quantum-L9/l9-ci-debt-lsp/pull/2) | Open |
 | @l9/harness | Local update | In progress |
 
