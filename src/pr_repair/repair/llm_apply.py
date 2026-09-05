@@ -157,10 +157,14 @@ def apply_llm_proposals(
                     attempt,
                     None,
                 )
-    except Exception:
+    except BaseException:
         # A raise from apply/verify/regenerate (unsupported op, exact-match mismatch,
         # missing file, ...) must not leave the tree dirty -- roll back like the
         # deterministic lane, then surface the error.
+        #
+        # BaseException, not Exception: interrupting a run mid-apply is exactly
+        # when a dirty worktree must not survive, and KeyboardInterrupt does not
+        # derive from Exception. The block re-raises, so nothing is swallowed.
         restore_worktree(snapshot, repo_root)
         log_event(
             "llm_repair_rolled_back",

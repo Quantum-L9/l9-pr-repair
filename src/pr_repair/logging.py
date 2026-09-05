@@ -65,7 +65,12 @@ def log_event(event: str, **fields: Any) -> None:
     payload = " ".join(f"{key}={value!r}" for key, value in sorted(fields.items()))
     logger.info("%s %s", event, payload)
     for sink in _EVENT_SINKS:
+        # Deliberately broad: a registered sink is third-party code and must
+        # never break the pipeline's logging, so any failure it raises is
+        # reported and stepped over. Exception rather than BaseException keeps
+        # KeyboardInterrupt and cancellation propagating.
+        # nosemgrep: l9.baseline.python.broad-except
         try:
             sink(event, fields)
-        except Exception:  # a sink must never break the pipeline's logging
+        except Exception:
             logger.exception("event sink failed for %s", event)

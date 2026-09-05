@@ -209,7 +209,12 @@ def write_interpretation_artifacts(
     from pr_repair.types import ExecutionMode, TierLevel
 
     config = AppConfig(
-        github_token="compat-token",
+        # Empty, not a placeholder string: this dry-run wrapper reaches only
+        # build_repair_plan and write_pr_artifacts, neither of which reads
+        # github_token (a GitHubConnector is built solely in run_pipeline and
+        # pr_collector). Carrying a token-shaped literal here served no purpose
+        # beyond looking like a credential.
+        github_token="",
         github_repository=f"{bundle.pr_ref.repo_owner}/{bundle.pr_ref.repo_name}",
         verify_command=["python", "-c", "print('compat')"],
         mode=ExecutionMode.dry_run,

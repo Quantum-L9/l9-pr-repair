@@ -124,7 +124,10 @@ def execute_repair_plan(
             push_result=push_result,
             status="completed",
         )
-    except Exception:
+    except BaseException:
+        # BaseException, not Exception: this rolls the worktree back to
+        # backup_ref and re-raises. Interrupting a repair is precisely when the
+        # rollback must still run, and KeyboardInterrupt is not an Exception.
         rollback_to_backup(backup_ref, root)
         log_event("repair_rolled_back", pr_number=plan.pr_ref.pr_number, reason="exception")
         raise
