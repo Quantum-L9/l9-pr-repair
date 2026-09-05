@@ -6,7 +6,7 @@
 # status: active
 # --- /L9_META ---
 #
-# PR quality + security gate for PR_Repair.
+# PR quality + security gate for l9-pr-repair.
 #
 # Blocking gates:   pytest (unit/integration), GitGuardian secret scan.
 # Advisory (non-blocking until the repo is clean): ruff, mypy --strict, Sonar.

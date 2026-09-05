@@ -63,7 +63,7 @@ def write_findings(repo_root: Path, findings_payload: dict[str, Any]) -> Path:
     channel_dir = _ensure_channel(repo_root, "findings")
     envelope = {
         "schema": "l9.corpus_finding/v1",
-        "produced_by": "Quantum-L9/PR_Repair",
+        "produced_by": "Quantum-L9/l9-pr-repair",
         "produced_at": _utc_now(),
         "payload": findings_payload,
     }
@@ -85,7 +85,7 @@ def write_telemetry(repo_root: Path, telemetry_data: dict[str, Any]) -> Path:
     channel_dir = _ensure_channel(repo_root, "telemetry")
     envelope = {
         "schema": "l9.corpus_telemetry/v1",
-        "produced_by": "Quantum-L9/PR_Repair",
+        "produced_by": "Quantum-L9/l9-pr-repair",
         "produced_at": _utc_now(),
         "payload": telemetry_data,
     }
@@ -107,7 +107,7 @@ def write_learning_packets(repo_root: Path, packets: list[dict[str, Any]]) -> Pa
     channel_dir = _ensure_channel(repo_root, "learning")
     envelope = {
         "schema": "l9.corpus_learning/v1",
-        "produced_by": "Quantum-L9/PR_Repair",
+        "produced_by": "Quantum-L9/l9-pr-repair",
         "produced_at": _utc_now(),
         "packet_count": len(packets),
         "payload": packets,

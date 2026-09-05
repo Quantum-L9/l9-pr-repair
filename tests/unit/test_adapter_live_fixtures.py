@@ -1,7 +1,7 @@
 """Real-shape adapter confirmation, backed by captured GitHub fixtures.
 
 Unlike the synthetic fixtures in test_phase4_adapters.py, these load payloads
-captured from live PRs on Quantum-L9/PR_Repair so a channel/login drift in a real
+captured from live PRs on Quantum-L9/l9-pr-repair so a channel/login drift in a real
 tool is caught. See tests/fixtures/tools/*.json for provenance.
 
 Audit result (see fixtures for evidence):

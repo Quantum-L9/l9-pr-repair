@@ -1,6 +1,6 @@
 {
   "schema": "l9.corpus_manifest/v1",
-  "repo": "Quantum-L9/PR_Repair",
+  "repo": "Quantum-L9/l9-pr-repair",
   "role": "producer+consumer",
   "produces": [
     {
