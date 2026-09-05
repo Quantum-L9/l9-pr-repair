@@ -21,9 +21,11 @@ env:
   L9_PROFILE: "pr_fast"
   L9_MATRIX_ID: "pr-semgrep"
 
+# Workflow-level default is read-only. `checks: write` is declared by the jobs
+# that publish check runs, so granting it here as well widened every job's
+# token for no benefit.
 permissions:
   contents: read
-  checks: write
 
 concurrency:
   group: l9-analysis-${{ github.workflow }}-${{ github.ref }}
@@ -79,7 +81,10 @@ jobs:
         if: steps.gov.outputs.enabled == 'true'
         run: |
           set -euo pipefail
-          pip install --upgrade pip semgrep
+          # Pinned and wheel-only: the scanner version is part of what makes a
+          # scan result reproducible, and --only-binary :all: keeps any
+          # dependency's setup.py from executing during installation.
+          pip install --only-binary :all: "semgrep==1.176.1"
           mkdir -p "artifacts/raw/semgrep/${L9_MATRIX_ID}"
           semgrep scan \
             --config p/python \

@@ -57,19 +57,28 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
+      # uv.lock is this repository's resolved dependency set. `--locked`
+      # installs exactly what it records and fails the job when the lockfile has
+      # drifted from pyproject.toml; `--no-build` refuses source distributions,
+      # so no dependency's setup.py executes during installation. The unpinned
+      # `pip install ruff` / `pip install mypy` this replaces resolved to
+      # whatever was latest on each run.
+      #
+      # mypy still sees real types rather than Any: the runtime dependencies are
+      # installed and pydantic ships PEP 561 types.
       - name: Install lint tools
         run: |
           set -euo pipefail
-          python -m pip install --upgrade pip
-          if [ -f requirements-ci.txt ]; then pip install -r requirements-ci.txt; fi
-          command -v ruff >/dev/null 2>&1 || pip install ruff
-          command -v mypy >/dev/null 2>&1 || pip install mypy
+          python -m pip install --only-binary :all: "uv==0.12.10"
+          uv sync --locked --no-build
 
       - name: ruff check
-        run: ruff check "${SOURCE_DIR}" --output-format=github
+        # uv run --no-sync: the tools live in the .venv built by the install
+        # step, and re-syncing here would undo that step's --no-build guarantee.
+        run: uv run --no-sync --no-build ruff check "${SOURCE_DIR}" --output-format=github
 
       - name: ruff format --check
-        run: ruff format --check "${SOURCE_DIR}"
+        run: uv run --no-sync --no-build ruff format --check "${SOURCE_DIR}"
 
       - name: mypy
         run: |
@@ -82,7 +91,7 @@ jobs:
           if [ -n "${MYPY_EXCLUDE}" ]; then
             MYPY_EXCLUDE_ARGS=(--exclude "${MYPY_EXCLUDE}")
           fi
-          mypy "${SOURCE_DIR}" \
+          uv run --no-sync --no-build mypy "${SOURCE_DIR}" \
             "${MYPY_EXCLUDE_ARGS[@]}" \
             --show-error-codes --pretty \
             --install-types --non-interactive --ignore-missing-imports
@@ -113,17 +122,15 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
+      # Same locked, no-source-build install as the lint job. The chain of
+      # conditional `pip install` fallbacks this replaces pulled pytest-xdist
+      # and pytest-timeout that pyproject.toml declared nowhere, so uv.lock did
+      # not carry them; they are declared now.
       - name: Install test tools
         run: |
           set -euo pipefail
-          python -m pip install --upgrade pip
-          if [ -f requirements-ci.txt ]; then pip install -r requirements-ci.txt; fi
-          pip install -e ".[dev]" || pip install -e . || \
-            echo "::notice::no local editable package to install"
-          command -v pytest >/dev/null 2>&1 || pip install pytest
-          python -c "import pytest_cov" 2>/dev/null || pip install pytest-cov
-          python -c "import xdist" 2>/dev/null || pip install pytest-xdist
-          python -c "import pytest_timeout" 2>/dev/null || pip install pytest-timeout
+          python -m pip install --only-binary :all: "uv==0.12.10"
+          uv sync --locked --no-build
 
       - name: pytest with coverage
         env:
@@ -134,7 +141,7 @@ jobs:
           if [ "${PYTEST_PARALLEL}" = "true" ]; then
             XDIST_ARGS=(-n auto)
           fi
-          PYTHONPATH=. pytest "${TEST_DIR}" \
+          PYTHONPATH=. uv run --no-sync --no-build pytest "${TEST_DIR}" \
             "${XDIST_ARGS[@]}" \
             --cov="${SOURCE_DIR}" \
             --cov-report=xml --cov-report=term-missing \

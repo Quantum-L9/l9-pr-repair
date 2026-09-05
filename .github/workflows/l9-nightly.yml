@@ -17,7 +17,11 @@ jobs:
       actions: read
       checks: write
       contents: read
-    secrets: inherit
+    # No `secrets: inherit`. The nightly kernel declares no workflow_call
+    # secrets and uses only secrets.GITHUB_TOKEN, which GitHub provisions for
+    # reusable workflows automatically; the analyze-semgrep workflow it calls
+    # declares and uses none either. Inheriting handed the full repository
+    # secret set to a workflow that needs no secret at all.
     with:
       python-version: "3.12"
       run-extended-tests: true

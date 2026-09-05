@@ -84,8 +84,15 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install project
-        run: uv pip install -e .
+      # Locked dependencies only, no source build. `uv pip install -e .` had to
+      # build this project on every run just to reach the `pr-repair` console
+      # script; the CLI is now reachable as `python -m pr_repair`, so the build
+      # is unnecessary. `--locked` installs exactly what uv.lock records and
+      # fails the job when it has drifted from pyproject.toml; `--no-build`
+      # refuses source distributions, so no dependency's setup.py executes
+      # during installation.
+      - name: Install locked dependencies
+        run: uv sync --locked --no-build
 
       - name: Normalize review into agent_review_payload.json
         id: ingest
@@ -105,7 +112,7 @@ jobs:
           # pull_request_review event JSON. The entrypoint fetches the tool's
           # threads itself; no pre-existing payload is required.
           set +e
-          uv run pr-repair ingest-review \
+          PYTHONPATH=src uv run --no-sync --no-build python -m pr_repair ingest-review \
             --event-path "$GITHUB_EVENT_PATH" \
             --output artifacts/agent_review_payload.json
           rc=$?
@@ -138,7 +145,7 @@ jobs:
           # downstream bot must never run on a missing payload.
           test -s artifacts/agent_review_payload.json \
             || { echo "::error::expected payload is missing/empty"; exit 1; }
-          uv run pr-repair run
+          PYTHONPATH=src uv run --no-sync --no-build python -m pr_repair run
 
       - name: Upload run artifacts
         if: always() && steps.ingest.outputs.status == 'produced'

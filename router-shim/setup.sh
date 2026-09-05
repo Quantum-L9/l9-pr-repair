@@ -9,13 +9,20 @@ set -euo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$here"
 
+# --ignore-scripts: installing a package must not be able to execute it. Any
+# dependency's preinstall/install/postinstall hook otherwise runs arbitrary code
+# on the developer machine or CI runner that merely resolves the tree. Nothing
+# here needs those hooks -- as the note above records, @quantum-l9/llm-router
+# ships no `prepare` hook and is built explicitly below.
 echo "[router-shim] installing dependencies..."
-npm install
+npm install --ignore-scripts
 
 dep_dir="node_modules/@quantum-l9/llm-router"
 if [ ! -f "$dep_dir/dist/index.js" ]; then
   echo "[router-shim] building @quantum-l9/llm-router from source..."
-  (cd "$dep_dir" && npm install && npm run build)
+  # `npm run build` stays: it is this script's own deliberate build step, not a
+  # hook a dependency got to choose.
+  (cd "$dep_dir" && npm install --ignore-scripts && npm run build)
 fi
 
 echo "[router-shim] ready. Provider keys are read from the environment at runtime:"

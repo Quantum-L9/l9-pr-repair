@@ -40,28 +40,33 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        # SHA-pinned: a mutable tag lets the action's owner change what runs
+        # here after review. v5 resolved to this commit, the same one the rest
+        # of the fleet already pins.
+        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86  # v5
         with:
           python-version: "3.11"
           enable-cache: true
 
       - name: Install project + dev tooling (locked)
-        # `uv sync --locked` installs the project plus the default
-        # [dependency-groups].dev group from uv.lock — pinned versions instead
-        # of the previous unpinned `uv pip install ruff mypy ...`, which drifted
-        # to whatever was latest on each CI run.
-        run: uv sync --locked
+        # `uv sync --locked` installs the default [dependency-groups].dev
+        # group from uv.lock — pinned versions instead of the previous unpinned
+        # `uv pip install ruff mypy ...`, which drifted to whatever was latest on
+        # each CI run. `--no-build` additionally refuses source distributions, so
+        # no dependency's setup.py executes during installation. Later steps use
+        # `uv run --no-sync` so they cannot silently re-resolve past that.
+        run: uv sync --locked --no-build
 
       - name: Ruff (advisory)
         continue-on-error: true
-        run: uv run ruff check .
+        run: uv run --no-sync --no-build ruff check .
 
       - name: Mypy --strict (advisory)
         continue-on-error: true
-        run: uv run mypy src/ --strict
+        run: uv run --no-sync --no-build mypy src/ --strict
 
       - name: Pytest (blocking gate) with coverage
-        run: uv run pytest -q --cov=src/pr_repair --cov-report=xml --cov-report=term-missing
+        run: uv run --no-sync --no-build pytest -q --cov=src/pr_repair --cov-report=xml --cov-report=term-missing
 
       - name: Upload coverage.xml
         if: always()
@@ -81,7 +86,9 @@ jobs:
         with:
           fetch-depth: 0
       - name: ggshield secret scan (blocking gate)
-        uses: GitGuardian/ggshield-action@v1
+        # SHA-pinned: v1 is a moving tag, and this action receives the
+        # repository contents and a GitGuardian API key.
+        uses: GitGuardian/ggshield-action@7059aef1ffb7d2374ce27201144f5613beecefe0  # v1
         env:
           # Commit-range env per GitGuardian/ggshield-action's documented contract:
           # push uses BEFORE_SHA/BASE_SHA (github.event.base), PR uses PULL_BASE_SHA.
@@ -126,7 +133,8 @@ jobs:
         continue-on-error: true
       - name: SonarQube scan
         if: steps.sonarcfg.outputs.configured == 'true'
-        uses: SonarSource/sonarqube-scan-action@v4
+        # SHA-pinned: v4 is a moving tag, and this action receives SONAR_TOKEN.
+        uses: SonarSource/sonarqube-scan-action@689fb39b34b9aa95ebc5f8f119343ddd51542402  # v4
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           # SONAR_HOST_URL: set as a repo/org variable for self-hosted SonarQube.

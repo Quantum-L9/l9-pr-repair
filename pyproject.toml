@@ -27,6 +27,12 @@ dev = [
   "types-PyYAML",
   "pytest>=8",
   "pytest-cov",
+  # pytest-timeout and pytest-xdist back the `--timeout=300` and `-n auto` the
+  # l9-lint-test.yml test job passes. They were installed ad hoc by that
+  # workflow and declared nowhere, so the lockfile did not carry them and the
+  # job depended on an unpinned `pip install` to exist at all.
+  "pytest-timeout",
+  "pytest-xdist",
   "ruff>=0.6",
 ]
 

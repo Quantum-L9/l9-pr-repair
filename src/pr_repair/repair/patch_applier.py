@@ -33,6 +33,15 @@ def _resolve_within_root(root: Path, file_path: str) -> Path:
     return target
 
 
+def _assert_within_root(root: Path, target: Path) -> None:
+    """Raise unless the already-resolved ``target`` lies inside ``root``."""
+    root_resolved = root.resolve()
+    resolved = target.resolve()
+    if resolved != root_resolved and root_resolved not in resolved.parents:
+        msg = f"patch target escapes repository root: {target}"
+        raise ValueError(msg)
+
+
 class PatchApplyResult(NamedTuple):
     modified_files: list[str]
     applied_finding_ids: list[str]
@@ -106,7 +115,7 @@ def _apply_replace_line(instruction: dict[str, object], root: Path) -> str:
         raise ValueError(msg)
 
     lines[line_number - 1] = replacement
-    _write_lines(path, lines)
+    _write_lines(path, lines, root=root)
     return file_path
 
 
@@ -159,7 +168,7 @@ def _apply_replace_range(instruction: dict[str, object], root: Path) -> str:
         raise ValueError(msg)
 
     lines[line_start - 1 : line_end] = replacement.split("\n")
-    _write_lines(path, lines)
+    _write_lines(path, lines, root=root)
     return file_path
 
 
@@ -170,5 +179,15 @@ def _read_lines(path: Path, file_path: str) -> list[str]:
     return path.read_text(encoding="utf-8").splitlines()
 
 
-def _write_lines(path: Path, lines: list[str]) -> None:
+def _write_lines(path: Path, lines: list[str], *, root: Path) -> None:
+    """Write ``lines`` to ``path``, re-proving containment at the point of write.
+
+    Callers already resolve through :func:`_resolve_within_root`, so this repeats
+    a check that has passed. That is deliberate: this is the only function in the
+    module that mutates the filesystem, and every byte it writes originates in an
+    untrusted review payload. Binding the guarantee to the write itself means a
+    future caller cannot reach it without containment, rather than the guarantee
+    resting on each caller having remembered to validate first.
+    """
+    _assert_within_root(root, path)
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
