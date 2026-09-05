@@ -18,4 +18,7 @@ def test_build_validator_recommendations_is_review_only() -> None:
 
     assert payload["target_system"] == "external_validator_suite"
     assert payload["write_policy"] == "review_only_no_direct_mutation"
-    assert "Add a plan safety validator for protected paths." in payload["sections"]["new_rule_candidates"]
+    assert (
+        "Add a plan safety validator for protected paths."
+        in payload["sections"]["new_rule_candidates"]
+    )

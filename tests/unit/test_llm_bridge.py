@@ -64,7 +64,9 @@ def _cfg() -> AppConfig:
 
 
 def test_null_client_abstains() -> None:
-    results = NullLLMClient().generate([LLMRequest(finding_id="x", system_prompt="s", user_prompt="u")])
+    results = NullLLMClient().generate(
+        [LLMRequest(finding_id="x", system_prompt="s", user_prompt="u")]
+    )
     assert results[0].abstained is True
 
 
@@ -84,7 +86,9 @@ def test_finding_complexity_maps_severity() -> None:
 
 def test_build_request_includes_context_and_bounds(tmp_path: Path) -> None:
     (tmp_path / "engine").mkdir()
-    (tmp_path / "engine" / "server.py").write_text("\n".join(f"l{i}" for i in range(1, 30)), encoding="utf-8")
+    (tmp_path / "engine" / "server.py").write_text(
+        "\n".join(f"l{i}" for i in range(1, 30)), encoding="utf-8"
+    )
     req = build_request(_manual_finding(), tmp_path, "implementer-bot")
     assert req.task_type == "code_generation"
     assert req.complexity == "high"
@@ -116,7 +120,9 @@ def test_propose_repairs_with_null_client_all_abstain(tmp_path: Path) -> None:
 
 def test_propose_repairs_skips_protected_paths(tmp_path: Path) -> None:
     fake = _FakeClient(content="{}")
-    proposals = propose_repairs([_manual_finding(protected=True)], fake, tmp_path, "implementer-bot")
+    proposals = propose_repairs(
+        [_manual_finding(protected=True)], fake, tmp_path, "implementer-bot"
+    )
     assert proposals == []
     assert fake.calls == []  # protected findings never reach the model
 
@@ -137,7 +143,13 @@ def _write_target(root: Path, *lines: str, path: str = "engine/server.py") -> Pa
 def test_propose_repairs_parses_valid_patch(tmp_path: Path) -> None:
     _write_target(tmp_path, "import os", "", "from fastapi import FastAPI")
     content = json.dumps(
-        {"op": "replace_range", "line_start": 3, "line_end": 3, "replacement": "x = 1", "rationale": "fix"}
+        {
+            "op": "replace_range",
+            "line_start": 3,
+            "line_end": 3,
+            "replacement": "x = 1",
+            "rationale": "fix",
+        }
     )
     proposals = propose_repairs([_manual_finding()], _FakeClient(content=content), tmp_path, "c")
     p = proposals[0]
@@ -189,14 +201,19 @@ def test_llm_proposal_abstains_when_the_model_range_exceeds_the_file(tmp_path: P
 
 def test_propose_repairs_handles_model_abstain(tmp_path: Path) -> None:
     proposals = propose_repairs(
-        [_manual_finding()], _FakeClient(content='{"abstain": true, "rationale": "too risky"}'), tmp_path, "c"
+        [_manual_finding()],
+        _FakeClient(content='{"abstain": true, "rationale": "too risky"}'),
+        tmp_path,
+        "c",
     )
     assert proposals[0].abstained is True
     assert proposals[0].rationale == "too risky"
 
 
 def test_propose_repairs_handles_non_json(tmp_path: Path) -> None:
-    proposals = propose_repairs([_manual_finding()], _FakeClient(content="sorry I cannot"), tmp_path, "c")
+    proposals = propose_repairs(
+        [_manual_finding()], _FakeClient(content="sorry I cannot"), tmp_path, "c"
+    )
     assert proposals[0].abstained is True
     assert any("non-JSON" in d for d in proposals[0].diagnostics)
 
@@ -214,7 +231,13 @@ def test_propose_repairs_rejects_repo_wide_finding_without_file_path(tmp_path: P
     # cannot target a file, so it must never become an applicable instruction.
     finding = _manual_finding().model_copy(update={"file_path": None})
     content = json.dumps(
-        {"op": "replace_range", "line_start": 3, "line_end": 3, "replacement": "x = 1", "rationale": "fix"}
+        {
+            "op": "replace_range",
+            "line_start": 3,
+            "line_end": 3,
+            "replacement": "x = 1",
+            "rationale": "fix",
+        }
     )
     proposals = propose_repairs([finding], _FakeClient(content=content), tmp_path, "c")
     assert proposals[0].instruction is None

@@ -22,7 +22,9 @@ def test_every_model_tier_is_reachable() -> None:
     reached: set[ModelTier] = set()
     for complexity in _COMPLEXITIES:
         for attempts in _ATTEMPTS:
-            cfg = resolve_llm_config(complexity, None, FindingSignals(prior_failed_attempts=attempts))
+            cfg = resolve_llm_config(
+                complexity, None, FindingSignals(prior_failed_attempts=attempts)
+            )
             reached.add(cfg.tier)
     assert reached == set(ModelTier), f"unreachable tiers: {set(ModelTier) - reached}"
 

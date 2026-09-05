@@ -1,7 +1,15 @@
 from pathlib import Path
 
 from pr_repair.repair.patch_generator import generate_patch_instructions
-from pr_repair.types import ExecutionMode, Finding, PRRef, RepairPlan, Severity, SourceName, TierLevel
+from pr_repair.types import (
+    ExecutionMode,
+    Finding,
+    PRRef,
+    RepairPlan,
+    Severity,
+    SourceName,
+    TierLevel,
+)
 
 
 def test_generate_patch_instructions_reads_live_file_content(tmp_path: Path) -> None:

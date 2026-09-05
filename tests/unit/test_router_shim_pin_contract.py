@@ -34,9 +34,7 @@ def test_router_dep_is_not_a_moving_branch() -> None:
 def test_router_dep_is_immutable_ref() -> None:
     spec = _dep_spec()
     match = _IMMUTABLE_REF.match(spec)
-    assert match is not None, (
-        f"{_DEP} must pin to a 40-char SHA or release tag, got {spec!r}"
-    )
+    assert match is not None, f"{_DEP} must pin to a 40-char SHA or release tag, got {spec!r}"
     ref = match.group("ref")
     # A bare branch-like word (e.g. 'main') is not an immutable ref.
     assert ref not in {"main", "master", "latest"}

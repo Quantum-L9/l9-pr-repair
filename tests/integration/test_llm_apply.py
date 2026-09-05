@@ -36,17 +36,35 @@ def _repo(tmp_path: Path, content: str = "OLD\n") -> Path:
 
 def _pr() -> PRRef:
     return PRRef(
-        repo_owner="o", repo_name="r", pr_number=5, title="t", head_branch="fix-branch",
-        base_branch="main", head_sha="s", is_draft=False, author="a", labels=[],
+        repo_owner="o",
+        repo_name="r",
+        pr_number=5,
+        title="t",
+        head_branch="fix-branch",
+        base_branch="main",
+        head_sha="s",
+        is_draft=False,
+        author="a",
+        labels=[],
     )
 
 
 def _finding(category: str = "compliance_failure", **over) -> Finding:
     base = dict(
-        finding_id="mr-1", pr_number=5, source_name=SourceName.agent_review, source_priority=110,
-        severity=Severity.high, category=category, message="m", file_path="f.py",
-        line_start=1, line_end=1, review_disposition=ReviewDisposition.manual_review,
-        repairable=False, fingerprint="fp-1", tier_impact=TierLevel.t0,
+        finding_id="mr-1",
+        pr_number=5,
+        source_name=SourceName.agent_review,
+        source_priority=110,
+        severity=Severity.high,
+        category=category,
+        message="m",
+        file_path="f.py",
+        line_start=1,
+        line_end=1,
+        review_disposition=ReviewDisposition.manual_review,
+        repairable=False,
+        fingerprint="fp-1",
+        tier_impact=TierLevel.t0,
     )
     base.update(over)
     return base if isinstance(base, Finding) else Finding(**base)
@@ -61,34 +79,60 @@ def _proposal(replacement: str, expected_block: list[str] | None = None) -> Prop
     attempts.
     """
     return ProposedPatch(
-        finding_id="mr-1", file_path="f.py", abstained=False,
-        instruction={"op": "replace_range", "file_path": "f.py", "line_start": 1,
-                     "line_end": 1, "replacement": replacement, "finding_id": "mr-1",
-                     "expected_block": ["OLD"] if expected_block is None else expected_block},
+        finding_id="mr-1",
+        file_path="f.py",
+        abstained=False,
+        instruction={
+            "op": "replace_range",
+            "file_path": "f.py",
+            "line_start": 1,
+            "line_end": 1,
+            "replacement": replacement,
+            "finding_id": "mr-1",
+            "expected_block": ["OLD"] if expected_block is None else expected_block,
+        },
     )
 
 
 def _config(tmp_path: Path, verify: list[str]) -> AppConfig:
     return AppConfig(
-        github_token="t", github_repository="o/r", verify_command=verify,
-        mode=ExecutionMode.repair_and_verify, output_dir=tmp_path / "out",
+        github_token="t",
+        github_repository="o/r",
+        verify_command=verify,
+        mode=ExecutionMode.repair_and_verify,
+        output_dir=tmp_path / "out",
         write_ceiling=TierLevel.t1,
     )
 
 
-_CHECK_GOOD = ["python", "-c", "import sys,pathlib; sys.exit(0 if 'GOOD' in pathlib.Path('f.py').read_text() else 1)"]
+_CHECK_GOOD = [
+    "python",
+    "-c",
+    "import sys,pathlib; sys.exit(0 if 'GOOD' in pathlib.Path('f.py').read_text() else 1)",
+]
 
 
 # --- eligibility -----------------------------------------------------------
 
+
 def test_eligibility_gates() -> None:
     wc = TierLevel.t1
     assert is_apply_eligible(_finding(), _proposal("GOOD"), wc) is True
-    assert is_apply_eligible(_finding(), ProposedPatch(finding_id="mr-1", abstained=True), wc) is False
-    assert is_apply_eligible(_finding(), ProposedPatch(finding_id="mr-1", abstained=False), wc) is False
+    assert (
+        is_apply_eligible(_finding(), ProposedPatch(finding_id="mr-1", abstained=True), wc) is False
+    )
+    assert (
+        is_apply_eligible(_finding(), ProposedPatch(finding_id="mr-1", abstained=False), wc)
+        is False
+    )
     # never-auto-repair category -> proposal-only
     assert is_apply_eligible(_finding(category="security_issue"), _proposal("GOOD"), wc) is False
-    assert is_apply_eligible(_finding(category="architecture_boundary_violation"), _proposal("GOOD"), wc) is False
+    assert (
+        is_apply_eligible(
+            _finding(category="architecture_boundary_violation"), _proposal("GOOD"), wc
+        )
+        is False
+    )
     # protected path -> never
     assert is_apply_eligible(_finding(protected_path=True), _proposal("GOOD"), wc) is False
     # over write ceiling -> never
@@ -97,9 +141,12 @@ def test_eligibility_gates() -> None:
 
 # --- apply loop ------------------------------------------------------------
 
+
 def test_apply_success(tmp_path: Path) -> None:
     repo = _repo(tmp_path)
-    result = apply_llm_proposals(_pr(), [(_finding(), _proposal("GOOD"))], _config(tmp_path, _CHECK_GOOD), repo)
+    result = apply_llm_proposals(
+        _pr(), [(_finding(), _proposal("GOOD"))], _config(tmp_path, _CHECK_GOOD), repo
+    )
 
     assert result is not None
     assert result.status == "completed"
@@ -111,6 +158,7 @@ def test_apply_success(tmp_path: Path) -> None:
 
 def test_apply_retries_once_then_succeeds(tmp_path: Path) -> None:
     repo = _repo(tmp_path)
+
     # First attempt writes BROKEN (fails verification); retry writes GOOD.
     def regenerate(stderr: str):
         return [(_finding(), _proposal("GOOD"))]
@@ -128,7 +176,10 @@ def test_apply_retries_once_then_succeeds(tmp_path: Path) -> None:
 def test_apply_both_attempts_fail_rolls_back(tmp_path: Path) -> None:
     repo = _repo(tmp_path)
     result = apply_llm_proposals(
-        _pr(), [(_finding(), _proposal("BROKEN"))], _config(tmp_path, _CHECK_GOOD), repo,
+        _pr(),
+        [(_finding(), _proposal("BROKEN"))],
+        _config(tmp_path, _CHECK_GOOD),
+        repo,
         regenerate=lambda stderr: [(_finding(), _proposal("STILL_BROKEN"))],
     )
 
@@ -146,7 +197,10 @@ def test_rollback_preserves_prior_autofix_changes(tmp_path: Path) -> None:
     (repo / "a.py").write_text("AUTOFIXED\n", encoding="utf-8")
 
     result = apply_llm_proposals(
-        _pr(), [(_finding(), _proposal("BROKEN"))], _config(tmp_path, _CHECK_GOOD), repo,
+        _pr(),
+        [(_finding(), _proposal("BROKEN"))],
+        _config(tmp_path, _CHECK_GOOD),
+        repo,
     )
 
     assert result is not None and result.status == "rolled_back_verification_failed"
@@ -158,9 +212,17 @@ def test_apply_rolls_back_on_exception(tmp_path: Path) -> None:
     repo = _repo(tmp_path)
     # An out-of-range range makes apply_patch_instructions raise mid-apply.
     bad = ProposedPatch(
-        finding_id="mr-1", file_path="f.py", abstained=False,
-        instruction={"op": "replace_range", "file_path": "f.py", "line_start": 50,
-                     "line_end": 60, "replacement": "x", "finding_id": "mr-1"},
+        finding_id="mr-1",
+        file_path="f.py",
+        abstained=False,
+        instruction={
+            "op": "replace_range",
+            "file_path": "f.py",
+            "line_start": 50,
+            "line_end": 60,
+            "replacement": "x",
+            "finding_id": "mr-1",
+        },
     )
 
     with pytest.raises(ValueError):
@@ -174,7 +236,10 @@ def test_apply_rolls_back_on_exception(tmp_path: Path) -> None:
 def test_no_applicable_returns_none(tmp_path: Path) -> None:
     repo = _repo(tmp_path)
     abstained = ProposedPatch(finding_id="mr-1", abstained=True)
-    assert apply_llm_proposals(_pr(), [(_finding(), abstained)], _config(tmp_path, _CHECK_GOOD), repo) is None
+    assert (
+        apply_llm_proposals(_pr(), [(_finding(), abstained)], _config(tmp_path, _CHECK_GOOD), repo)
+        is None
+    )
 
 
 def _run_porcelain(repo: Path) -> str:
@@ -191,9 +256,17 @@ def test_apply_refuses_a_proposal_with_no_expected_block(tmp_path: Path) -> None
     """
     repo = _repo(tmp_path)
     unguarded = ProposedPatch(
-        finding_id="mr-1", file_path="f.py", abstained=False,
-        instruction={"op": "replace_range", "file_path": "f.py", "line_start": 1,
-                     "line_end": 1, "replacement": "PWNED", "finding_id": "mr-1"},
+        finding_id="mr-1",
+        file_path="f.py",
+        abstained=False,
+        instruction={
+            "op": "replace_range",
+            "file_path": "f.py",
+            "line_start": 1,
+            "line_end": 1,
+            "replacement": "PWNED",
+            "finding_id": "mr-1",
+        },
     )
 
     pr, finding, config = _pr(), _finding(), _config(tmp_path, _CHECK_GOOD)
@@ -213,4 +286,3 @@ def test_apply_aborts_when_the_expected_block_is_stale(tmp_path: Path) -> None:
     with pytest.raises(ValueError, match="expected block mismatch"):
         apply_llm_proposals(pr, [(finding, stale)], config, repo)
     assert (repo / "f.py").read_text() == "OLD\n"
-

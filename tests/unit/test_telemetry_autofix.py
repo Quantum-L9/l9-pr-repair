@@ -12,9 +12,16 @@ from pr_repair.types import (
 
 def _pr(n: int = 1) -> PRRef:
     return PRRef(
-        repo_owner="o", repo_name="r", pr_number=n, title="t",
-        head_branch="h", base_branch="main", head_sha="s",
-        is_draft=False, author="a", labels=[],
+        repo_owner="o",
+        repo_name="r",
+        pr_number=n,
+        title="t",
+        head_branch="h",
+        base_branch="main",
+        head_sha="s",
+        is_draft=False,
+        author="a",
+        labels=[],
     )
 
 
@@ -47,7 +54,10 @@ def _execution(
     pr: int = 1,
 ) -> RepairExecution:
     return RepairExecution(
-        execution_id="e", pr_ref=_pr(pr), plan_id="p", mode=ExecutionMode.repair_and_verify,
+        execution_id="e",
+        pr_ref=_pr(pr),
+        plan_id="p",
+        mode=ExecutionMode.repair_and_verify,
         modified_files=modified or [],
         applied_finding_ids=applied or [],
         false_positive_rules=false_positive or [],
@@ -96,7 +106,9 @@ def test_findings_without_rule_id_are_skipped() -> None:
 
 def test_same_rule_aggregates_across_files() -> None:
     findings = [_autofix("rule-d", "a.py"), _autofix("rule-d", "b.py")]
-    execs = [_execution("completed", modified=["a.py"], applied=["af-rule-d-a.py"])]  # only a.py applied
+    execs = [
+        _execution("completed", modified=["a.py"], applied=["af-rule-d-a.py"])
+    ]  # only a.py applied
 
     tel = build_autofix_telemetry(findings, execs)
 

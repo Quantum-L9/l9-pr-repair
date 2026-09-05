@@ -10,7 +10,15 @@ from pr_repair.config import AppConfig
 from pr_repair.orchestration.pr_loop import PRLoopConfig, PRLoopOrchestrator, PRLoopState
 from pr_repair.runtime.pr_state_store import PRStateStore
 from pr_repair.server.github_webhook import WebhookSignatureError, parse_github_webhook
-from pr_repair.types import ExecutionMode, Finding, PRRef, RepairExecution, Severity, SourceName, TierLevel
+from pr_repair.types import (
+    ExecutionMode,
+    Finding,
+    PRRef,
+    RepairExecution,
+    Severity,
+    SourceName,
+    TierLevel,
+)
 
 
 def _config(tmp_path) -> AppConfig:
