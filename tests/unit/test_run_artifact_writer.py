@@ -1,6 +1,10 @@
 from pathlib import Path
 
-from pr_repair.output.artifact_writer import write_learning_artifacts, write_pr_artifacts, write_run_artifacts
+from pr_repair.output.artifact_writer import (
+    write_learning_artifacts,
+    write_pr_artifacts,
+    write_run_artifacts,
+)
 from pr_repair.state_store import StateStore
 from pr_repair.types import (
     ExecutionMode,
@@ -75,14 +79,16 @@ def test_write_artifacts_uses_per_pr_paths_and_root_aggregates(tmp_path: Path) -
     )
     write_learning_artifacts(
         store,
-        [LearningPacket(
-            packet_id="lp-7",
-            source_prs=[7],
-            repeated_failures=[],
-            agent_md_recommendations=[],
-            validator_recommendations=[],
-            confidence=0.3,
-        )],
+        [
+            LearningPacket(
+                packet_id="lp-7",
+                source_prs=[7],
+                repeated_failures=[],
+                agent_md_recommendations=[],
+                validator_recommendations=[],
+                confidence=0.3,
+            )
+        ],
         {"write_policy": "review_only_no_direct_mutation"},
         {"write_policy": "review_only_no_direct_mutation"},
     )

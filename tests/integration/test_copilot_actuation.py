@@ -10,19 +10,36 @@ from pr_repair.types import ExecutionMode, PRRef, RepairExecution, TierLevel
 
 def _pr() -> PRRef:
     return PRRef(
-        repo_owner="owner", repo_name="repo", pr_number=7, title="t",
-        head_branch="fix", base_branch="main", head_sha="sha",
-        is_draft=False, author="dev", labels=[],
+        repo_owner="owner",
+        repo_name="repo",
+        pr_number=7,
+        title="t",
+        head_branch="fix",
+        base_branch="main",
+        head_sha="sha",
+        is_draft=False,
+        author="dev",
+        labels=[],
     )
 
 
 def _thread(body: str, thread_id: str, comment_id: int) -> dict:
     return {
-        "id": thread_id, "isResolved": False, "path": "engine.py", "line": 2,
-        "comments": {"nodes": [
-            {"id": "PRRC", "databaseId": comment_id, "body": body,
-             "author": {"login": "copilot-pull-request-reviewer[bot]"}, "url": "https://x"}
-        ]},
+        "id": thread_id,
+        "isResolved": False,
+        "path": "engine.py",
+        "line": 2,
+        "comments": {
+            "nodes": [
+                {
+                    "id": "PRRC",
+                    "databaseId": comment_id,
+                    "body": body,
+                    "author": {"login": "copilot-pull-request-reviewer[bot]"},
+                    "url": "https://x",
+                }
+            ]
+        },
     }
 
 
@@ -46,9 +63,12 @@ class _FakeConn:
 
 def _config(tmp_path: Path) -> AppConfig:
     return AppConfig(
-        github_token="t", github_repository="owner/repo",
-        mode=ExecutionMode.repair_and_verify, post_comment=True,
-        output_dir=tmp_path / "runtime", write_ceiling=TierLevel.t1,
+        github_token="t",
+        github_repository="owner/repo",
+        mode=ExecutionMode.repair_and_verify,
+        post_comment=True,
+        output_dir=tmp_path / "runtime",
+        write_ceiling=TierLevel.t1,
     )
 
 
@@ -64,8 +84,11 @@ def test_copilot_suggestion_is_fixed_replied_and_resolved(monkeypatch, tmp_path:
     def fake_execute(plan, cfg, repo_root=None):
         (tmp_path / "engine.py").write_text("a\nTransportPacket\nc\n", encoding="utf-8")
         return RepairExecution(
-            execution_id="e", pr_ref=plan.pr_ref, plan_id=plan.plan_id,
-            mode=plan.execution_mode, status="completed",
+            execution_id="e",
+            pr_ref=plan.pr_ref,
+            plan_id=plan.plan_id,
+            mode=plan.execution_mode,
+            status="completed",
             modified_files=["engine.py"],
             applied_finding_ids=[finding.finding_id for finding in plan.targeted_findings],
             push_result="pushed:abc123",
@@ -83,7 +106,9 @@ def test_copilot_suggestion_is_fixed_replied_and_resolved(monkeypatch, tmp_path:
 
     # Phase 5: per-fix audit artifact.
     report = json.loads(
-        (tmp_path / "runtime" / "prs" / "pr_7" / "fixes" / "copilot-5001.json").read_text(encoding="utf-8")
+        (tmp_path / "runtime" / "prs" / "pr_7" / "fixes" / "copilot-5001.json").read_text(
+            encoding="utf-8"
+        )
     )
     assert report["outcome"] == "fixed"
     assert report["commit_sha"] == "abc123"
@@ -94,7 +119,9 @@ def test_copilot_suggestion_is_fixed_replied_and_resolved(monkeypatch, tmp_path:
 def test_plain_copilot_comment_is_justified_not_resolved(monkeypatch, tmp_path: Path) -> None:
     (tmp_path / "AGENT.md").write_text("# AGENT\n", encoding="utf-8")
     monkeypatch.chdir(tmp_path)
-    conn = _FakeConn([_thread("Consider refactoring this architecture boundary.", "PRRT_manual", 6002)])
+    conn = _FakeConn(
+        [_thread("Consider refactoring this architecture boundary.", "PRRT_manual", 6002)]
+    )
 
     # Default NullLLMClient abstains -> no proposal -> justified skip.
     result = run_tool_actuation(CopilotAdapter(), _pr(), _config(tmp_path), conn, tmp_path)
@@ -106,7 +133,9 @@ def test_plain_copilot_comment_is_justified_not_resolved(monkeypatch, tmp_path: 
 
     # Phase 5: the fix report captures the resolved LLM tier/depth + resolution_reason.
     report = json.loads(
-        (tmp_path / "runtime" / "prs" / "pr_7" / "fixes" / "copilot-6002.json").read_text(encoding="utf-8")
+        (tmp_path / "runtime" / "prs" / "pr_7" / "fixes" / "copilot-6002.json").read_text(
+            encoding="utf-8"
+        )
     )
     assert report["outcome"] == "justified_skip"
     assert report["resolved_llm"]["tier"] in {"haiku", "mistral-large", "opus", "opus-deep"}

@@ -18,15 +18,25 @@ def _pr() -> PRRef:
     )
 
 
-def _thread(body: str, *, resolved: bool = False, login: str = "copilot-pull-request-reviewer[bot]") -> dict:
+def _thread(
+    body: str, *, resolved: bool = False, login: str = "copilot-pull-request-reviewer[bot]"
+) -> dict:
     return {
         "id": "PRRT_1",
         "isResolved": resolved,
         "path": "engine.py",
         "line": 2,
-        "comments": {"nodes": [
-            {"id": "PRRC_1", "databaseId": 5001, "body": body, "author": {"login": login}, "url": "https://x"}
-        ]},
+        "comments": {
+            "nodes": [
+                {
+                    "id": "PRRC_1",
+                    "databaseId": 5001,
+                    "body": body,
+                    "author": {"login": login},
+                    "url": "https://x",
+                }
+            ]
+        },
     }
 
 
@@ -39,7 +49,9 @@ class _Conn:
 
 
 def _event(tool: str | None) -> NormalizedPREvent:
-    return NormalizedPREvent("pull_request_review", "submitted", "review_completed", "owner/repo", 7, "sha", {}, tool)
+    return NormalizedPREvent(
+        "pull_request_review", "submitted", "review_completed", "owner/repo", 7, "sha", {}, tool
+    )
 
 
 def test_matches_only_copilot_events() -> None:
@@ -69,7 +81,9 @@ def test_suggestion_block_becomes_autofix() -> None:
 
 def test_plain_comment_becomes_manual_review() -> None:
     adapter = CopilotAdapter()
-    raw = adapter.read_findings(_pr(), _Conn([_thread("This looks like an architecture boundary violation.")]))
+    raw = adapter.read_findings(
+        _pr(), _Conn([_thread("This looks like an architecture boundary violation.")])
+    )
     findings = adapter.to_payload_findings(raw)
 
     assert findings[0]["_disposition"] == "manual_review"

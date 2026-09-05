@@ -31,8 +31,14 @@ def _matrix(tmp_path: Path):
 
 def _finding(**kw) -> Finding:
     base = dict(
-        finding_id="f", pr_number=1, source_name=SourceName.agent_review, source_priority=110,
-        severity=Severity.medium, category="review_comment", message="m", fingerprint="fp",
+        finding_id="f",
+        pr_number=1,
+        source_name=SourceName.agent_review,
+        source_priority=110,
+        severity=Severity.medium,
+        category="review_comment",
+        message="m",
+        fingerprint="fp",
     )
     base.update(kw)
     return Finding(**base)
@@ -45,7 +51,9 @@ def test_version_is_loaded(tmp_path: Path) -> None:
 def test_rule_id_beats_category_and_tag(tmp_path: Path) -> None:
     registry = _matrix(tmp_path)
     f = _finding(
-        rule_id="l9.rename", tool="copilot", tags=["style"],
+        rule_id="l9.rename",
+        tool="copilot",
+        tags=["style"],
         category="architecture_boundary_violation",
     )
     strategy = registry.resolve(f)

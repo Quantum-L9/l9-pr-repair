@@ -51,10 +51,15 @@ def _finding(**overrides) -> Finding:
 
 def test_comment_carries_marker_and_table_header() -> None:
     execution = RepairExecution(
-        execution_id="exec-61", pr_ref=_pr(), plan_id="plan-61",
-        mode=ExecutionMode.dry_run, status="approval_required",
+        execution_id="exec-61",
+        pr_ref=_pr(),
+        plan_id="plan-61",
+        mode=ExecutionMode.dry_run,
+        status="approval_required",
     )
-    comment = build_pr_comment(execution, [_finding(review_disposition=ReviewDisposition.manual_review)])
+    comment = build_pr_comment(
+        execution, [_finding(review_disposition=ReviewDisposition.manual_review)]
+    )
 
     assert comment.startswith(MARKER)
     assert "| Finding | Source | Patch Applied | Verification Status |" in comment
@@ -63,8 +68,11 @@ def test_comment_carries_marker_and_table_header() -> None:
 
 def test_comment_preserves_contract_violation_details() -> None:
     execution = RepairExecution(
-        execution_id="exec-61", pr_ref=_pr(), plan_id="plan-61",
-        mode=ExecutionMode.dry_run, status="approval_required",
+        execution_id="exec-61",
+        pr_ref=_pr(),
+        plan_id="plan-61",
+        mode=ExecutionMode.dry_run,
+        status="approval_required",
     )
     comment = build_pr_comment(execution, [_finding()])
 
@@ -74,8 +82,11 @@ def test_comment_preserves_contract_violation_details() -> None:
 
 def test_table_reflects_applied_autofix_and_passing_verification() -> None:
     execution = RepairExecution(
-        execution_id="exec-7", pr_ref=_pr(7), plan_id="plan-7",
-        mode=ExecutionMode.repair_and_verify, status="completed",
+        execution_id="exec-7",
+        pr_ref=_pr(7),
+        plan_id="plan-7",
+        mode=ExecutionMode.repair_and_verify,
+        status="completed",
         modified_files=["engine/module.py"],
         applied_finding_ids=["f-61"],
         verification_result=VerificationReport(
@@ -83,7 +94,9 @@ def test_table_reflects_applied_autofix_and_passing_verification() -> None:
         ),
     )
     finding = _finding(
-        pr_number=7, category="lint_failure", contract_ids=[],
+        pr_number=7,
+        category="lint_failure",
+        contract_ids=[],
         review_disposition=ReviewDisposition.autofix,
     )
     comment = build_pr_comment(execution, [finding])
@@ -94,8 +107,11 @@ def test_table_reflects_applied_autofix_and_passing_verification() -> None:
 
 def test_same_file_second_finding_is_not_marked_applied() -> None:
     execution = RepairExecution(
-        execution_id="exec-7", pr_ref=_pr(7), plan_id="plan-7",
-        mode=ExecutionMode.repair_and_verify, status="completed",
+        execution_id="exec-7",
+        pr_ref=_pr(7),
+        plan_id="plan-7",
+        mode=ExecutionMode.repair_and_verify,
+        status="completed",
         modified_files=["engine/module.py"],
         applied_finding_ids=["f-61"],
         verification_result=VerificationReport(
@@ -103,7 +119,9 @@ def test_same_file_second_finding_is_not_marked_applied() -> None:
         ),
     )
     applied = _finding(
-        pr_number=7, category="lint_failure", contract_ids=[],
+        pr_number=7,
+        category="lint_failure",
+        contract_ids=[],
         review_disposition=ReviewDisposition.autofix,
     )
     other = _finding(
@@ -125,10 +143,15 @@ def test_same_file_second_finding_is_not_marked_applied() -> None:
 
 def test_table_reflects_manual_proposal() -> None:
     execution = RepairExecution(
-        execution_id="exec-9", pr_ref=_pr(9), plan_id="plan-9",
-        mode=ExecutionMode.dry_run, status="planned_only",
+        execution_id="exec-9",
+        pr_ref=_pr(9),
+        plan_id="plan-9",
+        mode=ExecutionMode.dry_run,
+        status="planned_only",
     )
-    finding = _finding(pr_number=9, contract_ids=[], review_disposition=ReviewDisposition.manual_review)
+    finding = _finding(
+        pr_number=9, contract_ids=[], review_disposition=ReviewDisposition.manual_review
+    )
     proposal = ProposedPatch(finding_id="f-61", file_path="engine/module.py", abstained=False)
     comment = build_pr_comment(execution, [finding], [proposal])
 

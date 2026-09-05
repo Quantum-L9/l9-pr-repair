@@ -27,7 +27,9 @@ _PR = {
 }
 
 
-def _thread(body, *, resolved=False, login="copilot-pull-request-reviewer[bot]", tid="PRRT_1", cid=5001):
+def _thread(
+    body, *, resolved=False, login="copilot-pull-request-reviewer[bot]", tid="PRRT_1", cid=5001
+):
     return {
         "id": tid,
         "isResolved": resolved,
@@ -35,7 +37,13 @@ def _thread(body, *, resolved=False, login="copilot-pull-request-reviewer[bot]",
         "line": 2,
         "comments": {
             "nodes": [
-                {"id": "PRRC_1", "databaseId": cid, "body": body, "author": {"login": login}, "url": "https://x"}
+                {
+                    "id": "PRRC_1",
+                    "databaseId": cid,
+                    "body": body,
+                    "author": {"login": login},
+                    "url": "https://x",
+                }
             ]
         },
     }
@@ -70,6 +78,7 @@ def _event(*, review_login="copilot-pull-request-reviewer[bot]", with_pr=True):
 
 
 # --- offline --context mode ------------------------------------------------
+
 
 def test_context_produces_schema_valid_payload(tmp_path):
     ctx = {
@@ -157,6 +166,7 @@ def test_missing_input_file_fails(tmp_path):
 
 # --- live --event-path mode ------------------------------------------------
 
+
 def test_collect_from_event_produces_payload(tmp_path, monkeypatch):
     monkeypatch.setenv("GITHUB_TOKEN", "t")
     event_path = tmp_path / "event.json"
@@ -233,6 +243,7 @@ def test_no_input_source_fails(tmp_path):
 
 # --- changed_files enrichment ----------------------------------------------
 
+
 class _FakeConnWithFiles(_FakeConn):
     def __init__(self, threads, files):
         super().__init__(threads)
@@ -254,7 +265,9 @@ def test_changed_files_populated_in_live_mode(tmp_path, monkeypatch):
     )
 
     rc = review_ingest.run(
-        output=str(out), event_path=str(event_path), generated_at=FIXED_TS,
+        output=str(out),
+        event_path=str(event_path),
+        generated_at=FIXED_TS,
         connector_factory=lambda token: conn,
     )
 
@@ -270,7 +283,9 @@ def test_changed_files_absent_when_connector_lacks_method(tmp_path, monkeypatch)
 
     # _FakeConn has no get_pr_changed_files -> graceful [].
     rc = review_ingest.run(
-        output=str(out), event_path=str(event_path), generated_at=FIXED_TS,
+        output=str(out),
+        event_path=str(event_path),
+        generated_at=FIXED_TS,
         connector_factory=lambda token: _FakeConn([_thread("plain")]),
     )
 
@@ -291,7 +306,9 @@ def test_changed_files_best_effort_on_fetch_error(tmp_path, monkeypatch):
             raise requests.RequestException("boom")
 
     rc = review_ingest.run(
-        output=str(out), event_path=str(event_path), generated_at=FIXED_TS,
+        output=str(out),
+        event_path=str(event_path),
+        generated_at=FIXED_TS,
         connector_factory=lambda token: _RaisingFiles([_thread("plain")]),
     )
 
@@ -314,6 +331,7 @@ def test_changed_files_preserved_in_context_mode(tmp_path):
 
 
 # --- CLI surface -----------------------------------------------------------
+
 
 def test_main_entrypoint_runs_context_mode(tmp_path):
     ctx = {"tool": "copilot", "pr": _PR, "threads": []}
@@ -353,8 +371,10 @@ def test_output_json_is_deterministic(tmp_path):
 # --- enabled-tools gate ----------------------------------------------------
 
 _TOOL_VARS = (
-    "PR_FIX_TOOL_COPILOT", "PR_FIX_TOOL_CODERABBIT",
-    "PR_FIX_TOOL_SONARCLOUD", "PR_FIX_TOOL_GITGUARDIAN",
+    "PR_FIX_TOOL_COPILOT",
+    "PR_FIX_TOOL_CODERABBIT",
+    "PR_FIX_TOOL_SONARCLOUD",
+    "PR_FIX_TOOL_GITGUARDIAN",
 )
 
 
@@ -381,8 +401,11 @@ def test_detected_but_disabled_tool_skips(tmp_path, monkeypatch):
     out = tmp_path / "payload.json"
 
     rc = review_ingest.run(
-        output=str(out), event_path=str(event_path),
-        connector_factory=lambda token: _FakeConn([_thread("issue (python:S1192)", login="sonarcloud[bot]")]),
+        output=str(out),
+        event_path=str(event_path),
+        connector_factory=lambda token: _FakeConn(
+            [_thread("issue (python:S1192)", login="sonarcloud[bot]")]
+        ),
     )
 
     assert rc == review_ingest.EXIT_SKIPPED  # sonarcloud detected but not enabled
@@ -397,8 +420,11 @@ def test_explicitly_enabled_tool_actuates(tmp_path, monkeypatch):
     thread = _thread("Define a constant (python:S1192).", login="sonarcloud[bot]")
 
     rc = review_ingest.run(
-        output=str(out), event_path=str(event_path), enabled_tools={"sonarcloud"},
-        generated_at=FIXED_TS, connector_factory=lambda token: _FakeConn([thread]),
+        output=str(out),
+        event_path=str(event_path),
+        enabled_tools={"sonarcloud"},
+        generated_at=FIXED_TS,
+        connector_factory=lambda token: _FakeConn([thread]),
     )
 
     assert rc == review_ingest.EXIT_PRODUCED
@@ -410,7 +436,14 @@ def test_cli_parses_enabled_tools_flag():
     from pr_repair.cli import build_parser
 
     args = build_parser().parse_args(
-        ["ingest-review", "--output", "p.json", "--context", "c.json",
-         "--enabled-tools", "copilot,sonarcloud"]
+        [
+            "ingest-review",
+            "--output",
+            "p.json",
+            "--context",
+            "c.json",
+            "--enabled-tools",
+            "copilot,sonarcloud",
+        ]
     )
     assert args.enabled_tools == "copilot,sonarcloud"
