@@ -51,3 +51,13 @@ htmlcov/
 
 # uv
 .venv/
+
+# Agent session bootstrap — injected into the checkout per session, not
+# repository content. .claude/rules is a symlink into the governance clone
+# (an absolute machine path) and .claude/skills is a projection of the
+# governance skill library, so committing either would duplicate the
+# governance SSOT and hardcode a machine path. .mcp.json is environment
+# specific. A repo that later wants its own tracked Claude config can
+# un-ignore the specific paths it owns. Mirrors l9-ci-sdk/.gitignore.
+/.claude/
+/.mcp.json
