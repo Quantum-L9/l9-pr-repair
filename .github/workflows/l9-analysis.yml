@@ -135,7 +135,7 @@ jobs:
       - id: route
         name: Route artifacts
         if: steps.gov.outputs.enabled == 'true'
-        uses: Quantum-L9/l9-ci-core/.github/actions/route-artifacts@1abce35b80a470001d6abbfd5929564c7e55c920
+        uses: Quantum-L9/l9-ci-core/.github/actions/route-artifacts@4c842cb838b6c49cf44681ecc683a432538fd348
         with:
           provider: semgrep
           matrix-id: ${{ env.L9_MATRIX_ID }}
