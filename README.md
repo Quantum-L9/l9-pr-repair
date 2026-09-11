@@ -88,3 +88,21 @@ Unsupported initially:
 - automatic merge
 - protected branch direct mutation
 - hosted multi-tenant orchestration
+
+## Repository manifest
+
+`MANIFEST.md` is the SDK-rendered inventory of this repository's tracked files.
+It is the input `l9-assurance` derives the `L9.CI.REPOSITORY_METADATA` control
+from, through the SDK's `l9.repository-metadata` observation: the committed
+manifest is compared against what the SDK builds from repository truth, and a
+missing or stale manifest fails that control. The file is owned by the
+`l9-ci manifest generate` CLI and is never hand-edited. Regenerate it whenever
+the set of tracked files changes:
+
+```bash
+l9-ci manifest generate --repository-root . --output MANIFEST.md --tracked-only
+l9-ci manifest check    --repository-root . --output MANIFEST.md --tracked-only
+```
+
+`MANIFEST.json` is unrelated: it is the pack inventory of the
+`pr_repair_github_pr_loop_pack` distribution and is not read by Assurance.
