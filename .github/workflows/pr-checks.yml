@@ -43,7 +43,7 @@ jobs:
         # SHA-pinned: a mutable tag lets the action's owner change what runs
         # here after review. v5 resolved to this commit, the same one the rest
         # of the fleet already pins.
-        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d  # v10.0.1
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7  # v10.2.0
         with:
           python-version: "3.11"
           enable-cache: true
@@ -88,7 +88,7 @@ jobs:
       - name: ggshield secret scan (blocking gate)
         # SHA-pinned: v1 is a moving tag, and this action receives the
         # repository contents and a GitGuardian API key.
-        uses: GitGuardian/ggshield-action@7059aef1ffb7d2374ce27201144f5613beecefe0  # v1
+        uses: GitGuardian/ggshield-action@7f66d3be9c59a821dcf4f45ee5d929203a1a0b90  # v1
         env:
           # Commit-range env per GitGuardian/ggshield-action's documented contract:
           # push uses BEFORE_SHA/BASE_SHA (github.event.base), PR uses PULL_BASE_SHA.
@@ -134,7 +134,7 @@ jobs:
       - name: SonarQube scan
         if: steps.sonarcfg.outputs.configured == 'true'
         # SHA-pinned: v4 is a moving tag, and this action receives SONAR_TOKEN.
-        uses: SonarSource/sonarqube-scan-action@22918119ff8e1ca75a623e15c8296b6ea4fbe28f  # v8.2.1
+        uses: SonarSource/sonarqube-scan-action@d209202bc7d53ff1cc128f7f907dac145c9d6ae9  # v8.3.0
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           # SONAR_HOST_URL: set as a repo/org variable for self-hosted SonarQube.
