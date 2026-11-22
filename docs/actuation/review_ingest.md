@@ -89,7 +89,7 @@ these as repo variables (`PR_REPAIR_TOOL_<NAME>`) on the ingest step.
 |------|--------------------------|---------------|--------|
 | **Copilot** | inline **review threads** (`copilot-pull-request-reviewer`) | review threads | **Confirmed** — enabled by default; locked by `copilot_review_context.json` |
 | **SonarCloud** | **issue-comment** Quality-Gate summary (`sonarqubecloud[bot]`), no inline threads | review threads | **Disabled** — summary is not per-issue actionable (no path/line/rule). Needs SonarCloud PR inline decoration confirmed before enabling. Evidence: `sonar_issue_comment.json` |
-| **GitGuardian** | **ggshield CI check** only (no PR comment) | review threads | **Disabled** — needs the GitGuardian App (inline PR comments) confirmed before enabling |
+| **GitGuardian** | none — the ggshield job is removed; Core gitleaks is the secret scan | review threads | **Disabled** |
 | **CodeRabbit** | not installed in scope | review threads | **Disabled / Unknown** — no live source to confirm |
 
 To enable a tool for a repo: confirm its inline-review-thread shape against a
