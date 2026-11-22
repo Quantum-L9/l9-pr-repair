@@ -1,22 +1,23 @@
 # --- L9_META ---
 # origin: l9-ci-enablement-pack
 # layer: [ci, quality, security]
-# tags: [pr-gate, ruff, mypy, pytest, gitguardian, sonar]
+# tags: [pr-gate, ruff, mypy, pytest, sonar]
 # owner: platform
 # status: active
 # --- /L9_META ---
 #
 # PR quality + security gate for l9-pr-repair.
 #
-# Blocking gates:   pytest (unit/integration), GitGuardian secret scan.
+# Blocking gates:   pytest (unit/integration).
+# Secret scanning is Core's gitleaks check. This workflow does not run ggshield.
 # Advisory (non-blocking until the repo is clean): ruff, mypy --strict, Sonar.
 #   The repo currently has pre-existing ruff (16) and mypy --strict findings; these
 #   run with continue-on-error so they report without blocking every PR. Flip
 #   `continue-on-error: false` once those are driven to zero (see RUNBOOK.md).
 #
 # Secrets are NOT available to pull_request runs from forks (GitHub security). The
-# secret-dependent jobs are therefore guarded to same-repo PRs; the quality job
-# (no secrets) always runs.
+# Sonar job is therefore guarded to same-repo PRs; the quality job (no secrets)
+# always runs.
 
 name: PR Checks
 
@@ -75,28 +76,6 @@ jobs:
           name: coverage
           path: coverage.xml
           if-no-files-found: warn
-
-  gitguardian:
-    name: GitGuardian secret scan
-    runs-on: ubuntu-latest
-    # Secrets are unavailable to fork PRs; skip there rather than fail spuriously.
-    if: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: ggshield secret scan (blocking gate)
-        # SHA-pinned: v1 is a moving tag, and this action receives the
-        # repository contents and a GitGuardian API key.
-        uses: GitGuardian/ggshield-action@7f66d3be9c59a821dcf4f45ee5d929203a1a0b90  # v1
-        env:
-          # Commit-range env per GitGuardian/ggshield-action's documented contract:
-          # push uses BEFORE_SHA/BASE_SHA (github.event.base), PR uses PULL_BASE_SHA.
-          GITHUB_PUSH_BEFORE_SHA: ${{ github.event.before }}
-          GITHUB_PUSH_BASE_SHA: ${{ github.event.base }}
-          GITHUB_PULL_BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          GITHUB_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
-          GITGUARDIAN_API_KEY: ${{ secrets.GITGUARDIAN_API_KEY }}
 
   sonar:
     name: SonarQube/SonarCloud analysis (advisory)

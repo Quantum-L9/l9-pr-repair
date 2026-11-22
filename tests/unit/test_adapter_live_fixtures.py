@@ -9,7 +9,7 @@ Audit result (see fixtures for evidence):
   * SonarCloud  -> issue-comment Quality-Gate summary, no inline threads on this
                    repo; adapter reads threads, so yields nothing (documented,
                    stays disabled until inline decoration is confirmed).
-  * GitGuardian -> ggshield CI check only, no review comments (stays disabled).
+  * GitGuardian -> no CI scan in this repo (Core gitleaks covers secrets); review adapter stays disabled.
   * CodeRabbit  -> not installed in scope (Unknown, stays disabled).
 """
 
